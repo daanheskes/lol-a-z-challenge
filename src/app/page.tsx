@@ -266,8 +266,8 @@ export default function Home() {
             <div
               key={champ.id}
               onClick={() => setActiveChampion(champ)}
-              className={`cursor-pointer border-2 ${
-                done ? "border-green-500" : "border-gray-400"
+              className={`cursor-pointer ${
+                done ? "border-green-500 border-2" : "border-gray-400 border-0"
               }`}
             >
               <Image
