@@ -186,7 +186,7 @@ export default function Home() {
     const fetchChampions = async () => {
       const res = await fetch(API_URL);
       const data = await res.json();
-      const champsArray = Object.values(data.data);
+      const champsArray = Object.values(data.data) as Champion[];
       setChampions(champsArray);
     };
     fetchChampions();
