@@ -1,103 +1,383 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+
+interface Champion {
+  id: string;
+  name: string;
+  tags: string[];
+  info: {
+    attack: number;
+    defense: number;
+    magic: number;
+    difficulty: number;
+  };
+  image: {
+    full: string;
+  };
+}
+
+interface ChampionProgress {
+  fun: number;
+  games: number;
+  notes: string;
+}
+
+const laneRoleMap: Record<string, string[]> = {
+  Aatrox: ["Top"],
+  Ahri: ["Mid"],
+  Akali: ["Top", "Mid"],
+  Alistar: ["Support"],
+  Amumu: ["Jungle"],
+  Anivia: ["Mid"],
+  Annie: ["Mid", "Support"],
+  Aphelios: ["Bottom"],
+  Ashe: ["Bottom"],
+  "Aurelion Sol": ["Mid"],
+  Azir: ["Mid"],
+  Bard: ["Support"],
+  Blitzcrank: ["Support"],
+  Brand: ["Support", "Mid"],
+  Braum: ["Support"],
+  Camille: ["Top", "Jungle"],
+  Cassiopeia: ["Mid"],
+  "Cho'Gath": ["Top", "Jungle"],
+  Corki: ["Mid", "Bottom"],
+  Darius: ["Top"],
+  Diana: ["Mid", "Jungle"],
+  "Dr. Mundo": ["Top", "Jungle"],
+  Draven: ["Bottom"],
+  Ekko: ["Mid", "Jungle"],
+  Elise: ["Jungle"],
+  Evelynn: ["Jungle"],
+  Ezreal: ["Bottom", "Mid"],
+  Fiddlesticks: ["Jungle", "Support"],
+  Fiora: ["Top"],
+  Fizz: ["Mid"],
+  Galio: ["Mid", "Support"],
+  Gangplank: ["Top"],
+  Garen: ["Top"],
+  Gnar: ["Top"],
+  Gragas: ["Jungle", "Top", "Mid"],
+  Graves: ["Jungle"],
+  Hecarim: ["Jungle"],
+  Heimerdinger: ["Top", "Mid"],
+  Irelia: ["Top", "Mid"],
+  Janna: ["Support"],
+  "Jarvan IV": ["Jungle"],
+  Jax: ["Top", "Jungle"],
+  Jayce: ["Top", "Mid"],
+  Jhin: ["Bottom"],
+  Jinx: ["Bottom"],
+  "Kai'Sa": ["Bottom"],
+  Kalista: ["Bottom"],
+  Karma: ["Support", "Mid"],
+  Kassadin: ["Mid"],
+  Katarina: ["Mid", "Jungle"],
+  Kayle: ["Top"],
+  Kayn: ["Jungle"],
+  Kennen: ["Top", "Mid", "Support"],
+  "Kha'Zix": ["Jungle"],
+  LeBlanc: ["Mid"],
+  "Lee Sin": ["Jungle", "Top"],
+  Leona: ["Support"],
+  Lillia: ["Jungle"],
+  Lucian: ["Bottom", "Mid"],
+  Lulu: ["Support", "Mid"],
+  Lux: ["Mid", "Support"],
+  Malphite: ["Top", "Jungle", "Support"],
+  Malzahar: ["Mid"],
+  Maokai: ["Top", "Support"],
+  "Master Yi": ["Jungle"],
+  "Miss Fortune": ["Bottom"],
+  Mordekaiser: ["Top", "Mid"],
+  Morgana: ["Support", "Mid"],
+  Nami: ["Support"],
+  Nasus: ["Top"],
+  Nautilus: ["Support", "Jungle"],
+  Neeko: ["Mid", "Support"],
+  Nidalee: ["Jungle", "Mid"],
+  Nocturne: ["Jungle"],
+  "Nunu & Willump": ["Jungle"],
+  Olaf: ["Jungle"],
+  Orianna: ["Mid"],
+  Ornn: ["Top"],
+  Pantheon: ["Top", "Mid", "Jungle"],
+  Poppy: ["Top", "Jungle"],
+  Pyke: ["Support", "Jungle"],
+  Qiyana: ["Mid", "Jungle"],
+  Quinn: ["Top", "Mid"],
+  Rakan: ["Support"],
+  Rammus: ["Jungle"],
+  "Rek'Sai": ["Jungle"],
+  Rengar: ["Jungle"],
+  Renekton: ["Top"],
+  Riven: ["Top"],
+  Rumble: ["Top", "Mid"],
+  Ryze: ["Mid", "Top"],
+  Senna: ["Support", "Bottom"],
+  Sett: ["Top", "Jungle"],
+  Shaco: ["Jungle"],
+  Shen: ["Top", "Support"],
+  Shyvana: ["Jungle"],
+  Singed: ["Top"],
+  Sion: ["Top", "Jungle"],
+  Sivir: ["Bottom"],
+  Skarner: ["Jungle"],
+  Sona: ["Support"],
+  Soraka: ["Support"],
+  Swain: ["Mid", "Support"],
+  Sylas: ["Mid", "Jungle"],
+  Syndra: ["Mid"],
+  "Tahm Kench": ["Support"],
+  Talon: ["Mid", "Jungle"],
+  Taric: ["Support"],
+  Teemo: ["Top"],
+  Thresh: ["Support"],
+  Tristana: ["Bottom", "Mid"],
+  Tryndamere: ["Top", "Jungle"],
+  "Twisted Fate": ["Mid"],
+  Twitch: ["Bottom"],
+  Udyr: ["Jungle"],
+  Urgot: ["Top"],
+  Varus: ["Bottom"],
+  Vayne: ["Bottom"],
+  Veigar: ["Mid"],
+  "Vel'Koz": ["Mid", "Support"],
+  Vi: ["Jungle"],
+  Viktor: ["Mid"],
+  Vladimir: ["Mid"],
+  Volibear: ["Top", "Jungle"],
+  Warwick: ["Jungle"],
+  Wukong: ["Top", "Jungle"],
+  Xerath: ["Mid"],
+  "Xin Zhao": ["Jungle", "Top"],
+  Yasuo: ["Mid", "Top"],
+  Yone: ["Mid", "Top"],
+  Yunara: ["Bottom", "Top"],
+  Yorick: ["Top"],
+  Yuumi: ["Support"],
+  Zac: ["Jungle"],
+  Zed: ["Mid"],
+  Zeri: ["Bottom"],
+  Ziggs: ["Mid"],
+  Zilean: ["Support"],
+  Zoe: ["Mid"],
+  Zyra: ["Support"],
+};
+
+const API_URL =
+  "https://ddragon.leagueoflegends.com/cdn/15.16.1/data/en_US/champion.json";
+const IMG_BASE_URL =
+  "https://ddragon.leagueoflegends.com/cdn/15.16.1/img/champion/";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [champions, setChampions] = useState<Champion[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string>("All");
+  const [progress, setProgress] = useState<Record<string, ChampionProgress>>(
+    {}
+  );
+  const [activeChampion, setActiveChampion] = useState<Champion | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const allTags = ["All", "Top", "Jungle", "Mid", "Bottom", "Support"];
+
+  useEffect(() => {
+    const fetchChampions = async () => {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      const champsArray = Object.values(data.data);
+      setChampions(champsArray);
+    };
+    fetchChampions();
+  }, []);
+
+  useEffect(() => {
+    const savedProgress = localStorage.getItem("lol-champion-progress");
+    if (savedProgress) {
+      try {
+        setProgress(JSON.parse(savedProgress));
+      } catch (e) {
+        console.error("Failed to parse saved progress", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("lol-champion-progress", JSON.stringify(progress));
+  }, [progress]);
+
+  function handleSaveProgress(fun: number, games: number, notes: string) {
+    if (!activeChampion) return;
+    setProgress((prev) => ({
+      ...prev,
+      [activeChampion.id]: { fun, games, notes },
+    }));
+    setActiveChampion(null);
+  }
+
+  const filteredChampions =
+    selectedTag === "All"
+      ? champions
+      : champions.filter(
+          (champ) => laneRoleMap[champ.name]?.includes(selectedTag) // you can plug back your map here
+        );
+
+  return (
+    <div className="max-w-6xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">
+        League of Legends A-Z Challenge
+      </h1>
+
+      {/* Progress Counter */}
+      <div className="mb-4 text-lg font-semibold">
+        {Object.values(progress).filter((x) => x.games > 0).length} /{" "}
+        {champions.length} champions completed (
+        {(
+          (Object.values(progress).filter((x) => x.games > 0).length /
+            champions.length) *
+          100
+        ).toFixed(1)}
+        %)
+      </div>
+
+      {/* Tag Filter Buttons */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {allTags.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => setSelectedTag(tag)}
+            className={`px-4 py-2 rounded ${
+              selectedTag === tag
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {tag}
+          </button>
+        ))}
+      </div>
+
+      {/* Champions Grid */}
+      <div className="grid grid-cols-10 gap-2">
+        {filteredChampions.map((champ) => {
+          const done = progress[champ.id]?.games > 0;
+          return (
+            <div
+              key={champ.id}
+              onClick={() => setActiveChampion(champ)}
+              className={`cursor-pointer border-2 ${
+                done ? "border-green-500" : "border-gray-400"
+              }`}
+            >
+              <Image
+                src={IMG_BASE_URL + champ.image.full}
+                alt={champ.name}
+                width={124}
+                height={124}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Modal */}
+      {activeChampion && (
+        <Modal
+          champion={activeChampion}
+          onClose={() => setActiveChampion(null)}
+          onSave={handleSaveProgress}
+          existing={progress[activeChampion.id]}
+        />
+      )}
     </div>
   );
 }
+
+function Modal({
+  champion,
+  onClose,
+  onSave,
+  existing,
+}: {
+  champion: Champion;
+  onClose: () => void;
+  onSave: (fun: number, games: number, notes: string) => void;
+  existing?: ChampionProgress;
+}) {
+  const [fun, setFun] = useState(existing?.fun ?? 5);
+  const [games, setGames] = useState(existing?.games ?? 1);
+  const [notes, setNotes] = useState(existing?.notes ?? "");
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
+        <h2 className="text-xl font-bold mb-4">{champion.name} Progress</h2>
+        <Image
+          src={IMG_BASE_URL + champion.image.full}
+          alt={champion.name}
+          width={64}
+          height={64}
+          className="mb-4"
+        />
+        {/* Fun Rating */}
+        <label className="block mb-2">
+          Fun (1-10):{" "}
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={fun}
+            onChange={(e) => setFun(Number(e.target.value))}
+            className="border p-1 w-20"
+          />
+        </label>
+
+        {/* Games Counter */}
+        <label className="block mb-2">
+          Games until Win:{" "}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="px-2 py-1 bg-gray-200"
+              onClick={() => setGames((g) => Math.max(0, g - 1))}
+            >
+              -
+            </button>
+            <span>{games}</span>
+            <button
+              type="button"
+              className="px-2 py-1 bg-gray-200"
+              onClick={() => setGames((g) => g + 1)}
+            >
+              +
+            </button>
+          </div>
+        </label>
+
+        {/* Notes */}
+        <label className="block mb-2">
+          Notes:
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="border p-2 w-full"
+          />
+        </label>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(fun, games, notes)}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
