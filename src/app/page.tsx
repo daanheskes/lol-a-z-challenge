@@ -155,7 +155,7 @@ const laneRoleMap: Record<string, string[]> = {
   "Xin Zhao": ["Jungle", "Top"],
   Yasuo: ["Mid", "Top"],
   Yone: ["Mid", "Top"],
-  Yunara: ["Bottom", "Top"],
+  Yunara: ["Bottom"],
   Yorick: ["Top"],
   Yuumi: ["Support"],
   Zac: ["Jungle"],
