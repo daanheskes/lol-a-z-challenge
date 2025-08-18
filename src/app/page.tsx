@@ -56,7 +56,7 @@ const laneRoleMap: Record<string, string[]> = {
   Ekko: ["Mid", "Jungle"],
   Elise: ["Jungle"],
   Evelynn: ["Jungle"],
-  Ezreal: ["Bottom", "Mid"],
+  Ezreal: ["Bottom"],
   Fiddlesticks: ["Jungle", "Support"],
   Fiora: ["Top"],
   Fizz: ["Mid"],
