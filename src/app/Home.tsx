@@ -100,7 +100,16 @@ export default function Home({ initialChampions, version }: HomeProps) {
             <h1 className="text-2xl font-bold mb-6">
                 League of Legends A-Z Challenge
             </h1>
-
+			<p className="mb-4 text-sm text-white/30">
+                <a 
+                    href="https://github.com/daanheskes/lol-a-z-challenge" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="underline hover:text-blue-600"
+                >
+                    View Source Code on GitHub
+                </a>
+            </p>
             {/* Progress Counter */}
             <div className="mb-4 text-lg font-semibold">
                 {Object.values(progress).filter((x) => x.games > 0).length} /{" "}
