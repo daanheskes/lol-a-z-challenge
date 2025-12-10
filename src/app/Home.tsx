@@ -2,7 +2,7 @@
 
 "use client";
 
-import Image from "next/image";
+// import Image from "next/image";
 import { useEffect, useState } from "react";
 
 // --- INTERFACE DEFINITIONS ---
@@ -142,7 +142,7 @@ export default function Home({ initialChampions, version }: HomeProps) {
                                 done ? "border-green-500 border-2" : "border-gray-400 border-0"
                             }`}
                         >
-                            <Image
+                            <img
                                 src={IMG_BASE_URL + champ.image.full}
                                 alt={champ.name}
                                 width={124}
