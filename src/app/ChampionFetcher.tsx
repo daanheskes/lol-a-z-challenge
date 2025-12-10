@@ -7,10 +7,6 @@ interface ChampionDataResponse {
     data: Record<string, Champion>;
 }
 
-// Data Dragon Template - using {{VERSION}} placeholder
-const IMG_BASE_URL_TEMPLATE =
-    `https://ddragon.leagueoflegends.com/cdn/{{VERSION}}/img/champion/`;
-
 // This is an ASYNC Server Component. 
 export async function ChampionFetcher() {
     

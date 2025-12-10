@@ -1,4 +1,4 @@
-// src/app/Home.tsx (Client Component - Updated for DDragon Tags)
+// src/app/Home.tsx 
 
 "use client";
 
@@ -6,10 +6,10 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 // --- INTERFACE DEFINITIONS ---
-export interface Champion { 
+export interface Champion { // Exported for use in ChampionFetcher
     id: string;
     name: string;
-    tags: string[]; // <-- This is the array we will now use for filtering
+    tags: string[]; // Used for filtering (Mage, Fighter, etc.)
     info: {
         attack: number;
         defense: number;
@@ -27,11 +27,6 @@ interface ChampionProgress {
     notes: string;
 }
 
-// --- REMOVED: laneRoleMap is no longer needed for filtering ---
-/*
-const laneRoleMap: Record<string, string[]> = { ... };
-*/
-
 // Data Dragon Template
 const IMG_BASE_URL_TEMPLATE =
     `https://ddragon.leagueoflegends.com/cdn/{{VERSION}}/img/champion/`;
@@ -44,14 +39,15 @@ interface HomeProps {
 
 // --- HOME COMPONENT (Client-Side Logic) ---
 export default function Home({ initialChampions, version }: HomeProps) {
-    const [champions, setChampions] = useState<Champion[]>(initialChampions); 
+    
+    // The champion list is now static, provided via the prop.
     const [selectedTag, setSelectedTag] = useState<string>("All");
     const [progress, setProgress] = useState<Record<string, ChampionProgress>>({});
     const [activeChampion, setActiveChampion] = useState<Champion | null>(null);
 
-    // --- NEW: Using DDragon's official champion tags for filtering ---
+    // DDragon official tags for filtering
     const allTags = [
-        "All", // Special case to show all champions
+        "All", 
         "Fighter", 
         "Tank", 
         "Mage", 
@@ -59,9 +55,13 @@ export default function Home({ initialChampions, version }: HomeProps) {
         "Support", 
         "Marksman",
     ];
+    
+    // Construct the image base URL using the version fetched at build time
+    const IMG_BASE_URL = IMG_BASE_URL_TEMPLATE.replace("{{VERSION}}", version);
 
-    // --- Local Storage Effects remain the same ---
+    // --- Local Storage Effects ---
     useEffect(() => {
+        // Load progress from localStorage
         const savedProgress = localStorage.getItem("lol-champion-progress");
         if (savedProgress) {
             try {
@@ -73,9 +73,11 @@ export default function Home({ initialChampions, version }: HomeProps) {
     }, []);
 
     useEffect(() => {
+        // Save progress to localStorage whenever it changes
         localStorage.setItem("lol-champion-progress", JSON.stringify(progress));
     }, [progress]);
 
+    // --- Handlers & Filtering ---
     function handleSaveProgress(fun: number, games: number, notes: string) {
         if (!activeChampion) return;
         setProgress((prev) => ({
@@ -85,17 +87,13 @@ export default function Home({ initialChampions, version }: HomeProps) {
         setActiveChampion(null);
     }
 
-    // --- UPDATED FILTERING LOGIC ---
-    // Now filters based on the 'tags' property available on the Champion object.
+    // Filters based on the Champion's 'tags' property
     const filteredChampions =
         selectedTag === "All"
-            ? champions
-            : champions.filter(
+            ? initialChampions 
+            : initialChampions.filter(
                   (champ) => champ.tags.includes(selectedTag)
               );
-
-    // --- JSX Rendering remains the same ---
-    const IMG_BASE_URL = IMG_BASE_URL_TEMPLATE.replace("{{VERSION}}", version);
 
     return (
         <div className="max-w-6xl mx-auto p-4">
@@ -106,16 +104,16 @@ export default function Home({ initialChampions, version }: HomeProps) {
             {/* Progress Counter */}
             <div className="mb-4 text-lg font-semibold">
                 {Object.values(progress).filter((x) => x.games > 0).length} /{" "}
-                {champions.length} champions completed (
+                {initialChampions.length} champions completed (
                 {(
                     (Object.values(progress).filter((x) => x.games > 0).length /
-                        champions.length) *
+                        initialChampions.length) *
                     100
                 ).toFixed(1)}
                 %)
             </div>
 
-            {/* Tag Filter Buttons (Now uses the new DDragon tags) */}
+            {/* Tag Filter Buttons */}
             <div className="mb-4 flex flex-wrap gap-2">
                 {allTags.map((tag) => (
                     <button
@@ -169,7 +167,7 @@ export default function Home({ initialChampions, version }: HomeProps) {
     );
 }
 
-// --- Modal Component (No changes needed, but included for completeness) ---
+// --- Modal Component ---
 function Modal({
     champion,
     onClose,
@@ -183,11 +181,11 @@ function Modal({
     existing?: ChampionProgress;
     version: string;
 }) {
-    // ... (Modal logic remains the same) ...
     const [fun, setFun] = useState(existing?.fun ?? 5);
     const [games, setGames] = useState(existing?.games ?? 1);
     const [notes, setNotes] = useState(existing?.notes ?? "");
     
+    // Construct the image URL inside the Modal
     const IMG_BASE_URL = IMG_BASE_URL_TEMPLATE.replace("{{VERSION}}", version);
 
     return (
@@ -201,13 +199,55 @@ function Modal({
                     height={64}
                     className="mb-4"
                 />
-                {/* ... (Rest of Modal JSX) ... */}
-                <label className="block mb-2">Fun (1-10): <input type="number" min={1} max={10} value={fun} onChange={(e) => setFun(Number(e.target.value))} className="border p-1 w-20" /></label>
-                <label className="block mb-2">Games until Win: <div className="flex items-center gap-2"><button type="button" className="px-2 py-1 bg-gray-200" onClick={() => setGames((g) => Math.max(0, g - 1))}>-</button><span>{games}</span><button type="button" className="px-2 py-1 bg-gray-200" onClick={() => setGames((g) => g + 1)}>+</button></div></label>
-                <label className="block mb-2">Notes:<textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="border p-2 w-full"/></label>
+                <label className="block mb-2">
+                    Fun (1-10):{" "}
+                    <input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={fun}
+                        onChange={(e) => setFun(Number(e.target.value))}
+                        className="border p-1 w-20"
+                    />
+                </label>
+                <label className="block mb-2">
+                    Games until Win:{" "}
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            className="px-2 py-1 bg-gray-200"
+                            onClick={() => setGames((g) => Math.max(0, g - 1))}
+                        >
+                            -
+                        </button>
+                        <span>{games}</span>
+                        <button
+                            type="button"
+                            className="px-2 py-1 bg-gray-200"
+                            onClick={() => setGames((g) => g + 1)}
+                        >
+                            +
+                        </button>
+                    </div>
+                </label>
+                <label className="block mb-2">
+                    Notes:
+                    <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        className="border p-2 w-full"
+                    />
+                </label>
                 <div className="flex justify-end gap-2 mt-4">
-                    <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                    <button onClick={() => onSave(fun, games, notes)} className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => onSave(fun, games, notes)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded"
+                    >
+                        Save
+                    </button>
                 </div>
             </div>
         </div>
